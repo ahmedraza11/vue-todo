@@ -12,34 +12,17 @@
       leave-active-class="animated fadeOutDown"
       name="fade"
     >
-      <div
+      <todo-item
         v-for="(todo, index) in todosFiltered"
-        :key="todo.id"
         class="todo-item"
+        :key="todo.id"
+        :todo="todo"
+        :index="index"
+        :checkAll="!anyRemaining"
+        @removedTodo="removeTodo"
+        @finishedTodo="finishedTodo"
       >
-        <div class="todo-item-left">
-          <input type="checkbox" v-model="todo.completed" />
-          <div
-            v-if="!todo.editing"
-            class="todo-item-label"
-            @dblclick="editTodo(todo)"
-            :class="{ completed: todo.completed }"
-          >
-            {{ todo.title }}
-          </div>
-          <input
-            v-else
-            class="todo-item-edit"
-            type="text"
-            v-focus
-            v-model="todo.title"
-            @blur="doneTodo(todo)"
-            @keyup.enter="doneTodo(todo)"
-            @keyup.esc="cancelTodo(todo)"
-          />
-        </div>
-        <div @click="removeTodo(index)" class="remove-item">&times;</div>
-      </div>
+      </todo-item>
     </transition-group>
     <div class="extra-container">
       <div>
@@ -83,8 +66,13 @@
 </template>
 
 <script>
+import TodoItem from "./todoItem.vue";
+
 export default {
   name: "TodoList",
+  components: {
+    TodoItem,
+  },
   data() {
     return {
       newTodo: "",
@@ -143,35 +131,14 @@ export default {
       this.newTodo = "";
       this.todoId++;
     },
-    removeTodo(index) {
-      this.todos.splice(index, 1);
-    },
-    doneTodo(todo) {
-      if (todo.title.trim() == 0) {
-        todo.title = this.beforeEditing;
-      }
-      todo.editing = false;
-    },
-    editTodo(todo) {
-      this.beforeEditing = todo.title;
-      todo.editing = true;
-    },
-    cancelTodo(todo) {
-      todo.title = this.beforeEditing;
-      todo.editing = false;
-    },
     checkAllTodos() {
       this.todos.forEach((todo) => (todo.completed = event.target.checked));
     },
     clearCompletedTodo() {
       this.todos = this.todos.filter((todo) => !todo.completed);
     },
-  },
-  directives: {
-    focus: {
-      inserted: function(el) {
-        el.focus();
-      },
+    finishedTodo(data) {
+      this.todos.splice(data.index, 1, data.todo);
     },
   },
 };
